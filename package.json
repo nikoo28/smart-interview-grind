@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://nikoo28.github.io/smart-interview-grind",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
