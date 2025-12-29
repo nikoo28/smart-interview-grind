@@ -4,7 +4,9 @@
 
 Stop randomly solving problems. This tool generates a **tailored interview preparation schedule** based on your exact time constraints, target companies, and experience level.
 
-![App Screenshot](https://raw.githubusercontent.com/nikoo28/smart-interview-grind/main/screenshot.png)
+![App Screenshot](./screenshot.png)
+
+> **[Download / Purchase License Key](https://topmate.io/nikoo28/1865464)**
 
 ## ✨ Features
 

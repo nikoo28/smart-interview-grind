@@ -7,6 +7,7 @@ import WelcomeScreen from './components/WelcomeScreen';
 import Wizard from './components/Wizard';
 import ConfigSummary from './components/ConfigSummary';
 import LicenseGate from './components/LicenseGate';
+import ConfirmationModal from './components/ConfirmationModal';
 import { generateSchedule } from './utils/scheduler';
 
 function App() {
@@ -14,6 +15,8 @@ function App() {
     const [isUnlocked, setIsUnlocked] = useState(() => {
         return localStorage.getItem('grind_license_unlocked') === 'true';
     });
+
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: null, title: '', message: '', isDanger: false });
 
     const handleUnlock = () => {
         localStorage.setItem('grind_license_unlocked', 'true');
@@ -202,19 +205,26 @@ function App() {
                     {(viewMode === 'app' || viewMode === 'results') && (
                         <>
                             <button
-                                onClick={() => {
-                                    if (window.confirm('Start over with a new plan? This will clear your current progress.')) {
-                                        setCompleted(new Set());
-                                        setAndPersistViewMode('welcome');
-                                    }
-                                }}
+                                onClick={() => setConfirmModal({
+                                    isOpen: true,
+                                    type: 'startOver',
+                                    title: 'Start Over?',
+                                    message: 'Are you sure you want to start over with a new plan? This will clear your current progress and settings.',
+                                    isDanger: false
+                                })}
                                 className="hidden md:block text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors"
                             >
                                 Start Over
                             </button>
 
                             <button
-                                onClick={resetProgress}
+                                onClick={() => setConfirmModal({
+                                    isOpen: true,
+                                    type: 'reset',
+                                    title: 'Reset Progress?',
+                                    message: 'Are you sure you want to reset all your progress marks? This action cannot be undone.',
+                                    isDanger: true
+                                })}
                                 className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors"
                             >
                                 Reset Progress
@@ -305,6 +315,23 @@ function App() {
             )}
 
             {(viewMode === 'app' || viewMode === 'results') && <Footer />}
+
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                isDanger={confirmModal.isDanger}
+                onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={() => {
+                    if (confirmModal.type === 'startOver') {
+                        setCompleted(new Set());
+                        setAndPersistViewMode('welcome');
+                    } else if (confirmModal.type === 'reset') {
+                        setCompleted(new Set());
+                    }
+                    setConfirmModal({ ...confirmModal, isOpen: false });
+                }}
+            />
         </div>
     );
 }
