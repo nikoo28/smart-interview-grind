@@ -140,7 +140,10 @@ export default function ConfigurationPanel({ config, setConfig, allProblems, fil
                             min="1" max="20"
                             value={config.weeks}
                             onChange={(e) => setConfig({ ...config, weeks: parseInt(e.target.value) })}
-                            className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-blue-500"
+                            className="w-full slider-modern text-blue-600 dark:text-blue-500"
+                            style={{
+                                background: `linear-gradient(to right, currentColor ${((config.weeks - 1) * 100) / 19}%, #e5e7eb ${((config.weeks - 1) * 100) / 19}%)`
+                            }}
                         />
                     </div>
                     <div>
@@ -150,10 +153,13 @@ export default function ConfigurationPanel({ config, setConfig, allProblems, fil
                         </label>
                         <input
                             type="range"
-                            min="2" max="20"
+                            min="2" max="40"
                             value={config.hoursPerWeek}
                             onChange={(e) => setConfig({ ...config, hoursPerWeek: parseInt(e.target.value) })}
-                            className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-600 dark:accent-emerald-500"
+                            className="w-full slider-modern text-emerald-600 dark:text-emerald-500"
+                            style={{
+                                background: `linear-gradient(to right, currentColor ${((config.hoursPerWeek - 2) * 100) / 38}%, #e5e7eb ${((config.hoursPerWeek - 2) * 100) / 38}%)`
+                            }}
                         />
                     </div>
                 </div>

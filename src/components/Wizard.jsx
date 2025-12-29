@@ -5,7 +5,9 @@ const PRESETS = {
     recommendedTopics: ['Array', 'String', 'Hash Table', 'Dynamic Programming', 'Tree', 'Graph', 'Linked List', 'Sorting']
 };
 
-export default function Wizard({ config, setConfig, allProblems, onComplete, onCancel }) {
+export default function Wizard({ config: globalConfig, setConfig: setGlobalConfig, allProblems, onComplete, onCancel }) {
+    // Local state to prevent App re-renders during slider movement
+    const [config, setConfig] = useState(globalConfig);
     const [step, setStep] = useState(1);
     // Removed isAnimating state to fix flickering issue
 
@@ -20,6 +22,7 @@ export default function Wizard({ config, setConfig, allProblems, onComplete, onC
 
 
     const handleGenerate = () => {
+        setGlobalConfig(config); // Commit to parent/global state
         setStep(5); // Loading screen (Step 5 now)
         setTimeout(() => {
             onComplete();
@@ -255,9 +258,9 @@ export default function Wizard({ config, setConfig, allProblems, onComplete, onC
                                         max="20"
                                         value={config.weeks}
                                         onChange={(e) => setConfig({ ...config, weeks: parseInt(e.target.value) })}
-                                        className="w-full h-4 rounded-xl appearance-none cursor-pointer hover:opacity-90 transition-opacity accent-blue-600"
+                                        className="w-full slider-modern text-blue-600"
                                         style={{
-                                            background: `linear-gradient(to right, #3b82f6 ${((config.weeks - 1) * 100) / 19}%, #e5e7eb ${((config.weeks - 1) * 100) / 19}%)`
+                                            background: `linear-gradient(to right, currentColor ${((config.weeks - 1) * 100) / 19}%, #e5e7eb ${((config.weeks - 1) * 100) / 19}%)`
                                         }}
                                     />
                                     <div className="flex justify-between text-xs font-medium text-gray-400 mt-2 px-1">
@@ -282,9 +285,9 @@ export default function Wizard({ config, setConfig, allProblems, onComplete, onC
                                         max="40"
                                         value={config.hoursPerWeek}
                                         onChange={(e) => setConfig({ ...config, hoursPerWeek: parseInt(e.target.value) })}
-                                        className="w-full h-4 rounded-xl appearance-none cursor-pointer hover:opacity-90 transition-opacity accent-purple-600"
+                                        className="w-full slider-modern text-purple-600"
                                         style={{
-                                            background: `linear-gradient(to right, #9333ea ${((config.hoursPerWeek - 2) * 100) / 38}%, #e5e7eb ${((config.hoursPerWeek - 2) * 100) / 38}%)`
+                                            background: `linear-gradient(to right, currentColor ${((config.hoursPerWeek - 2) * 100) / 38}%, #e5e7eb ${((config.hoursPerWeek - 2) * 100) / 38}%)`
                                         }}
                                     />
                                     <div className="flex justify-between text-xs font-medium text-gray-400 mt-2 px-1">
