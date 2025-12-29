@@ -89,6 +89,7 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+.vite/
 
 # Gatsby files
 .cache/
@@ -122,6 +123,5 @@ dist
 user_progress.json
 *.local.json
 
-# Data files (Exclude raw data sources)
-*.xlsx
-*.csv
+# Admin / Private Files
+admin/

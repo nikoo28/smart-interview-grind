@@ -1,54 +1,58 @@
-# Interview Grind - Intelligent Prep Scheduler
+# ⚡ Smart Interview Grind
 
-This application generates a tailored interview preparation schedule based on your time constraints, target companies, and experience level.
+**Your Intelligent AI-Powered Prep Scheduler.**
 
-## 🚀 Quick Start
+Stop randomly solving problems. This tool generates a **tailored interview preparation schedule** based on your exact time constraints, target companies, and experience level.
 
-1.  **Install Dependencies**:
-    ```bash
-    npm install
-    ```
+![App Screenshot](https://raw.githubusercontent.com/nikoo28/smart-interview-grind/main/screenshot.png)
 
-2.  **Start the App**:
-    ```bash
-    npm run dev
-    ```
+## ✨ Features
 
-## 🔄 How to Update Data
+*   **Smart Scheduling**: Distributes problems intelligently over weeks (e.g., "6 hours/week for 4 weeks").
+*   **Company Targeting**: Focus on specific companies like Google, Meta, or Amazon.
+*   **Topic Balancing**: Ensures you cover critical patterns (DP, Graphs, Trees) without burnout.
+*   **Dynamic Difficulty**: Adjusts problem mix based on your experience (Beginner vs. Expert).
+*   **Progress Tracking**: Mark problems as "Done" and watch your completion percentage rise.
 
-To update the application with new problems or company tags, you need two source files in the root directory:
+## 🚀 How to Use
 
-1.  **Company Mapping CSV**: Must be named exactly `global_problem_company_mapping.csv`.
-2.  **LeetCode Excel Export**: Must start with `leetcode_problems_` and end with `.xlsx` (e.g., `leetcode_problems_20251223.xlsx`).
+1.  **Launch**: Open the application in your browser.
+2.  **Unlock**: Drag and drop your **`smart-interview.license`** file (provided with purchase) to unlock the app.
+3.  **Configure**:
+    *   Select your experience level.
+    *   Choose your target companies.
+    *   Set your weekly time commitment.
+4.  **Grind**: Follow the generated visual schedule.
 
-### Update Steps:
+## 💼 License
 
-1.  Place the new files in the root folder (overwriting old ones if necessary).
-2.  Run the update script:
-    ```bash
-    npm run update-data
-    ```
-3.  Restart the dev server to see changes (if running):
-    ```bash
-    npm run dev
-    ```
+This is a premium tool. Access requires a valid license key file.
+If you have purchased the tool, your license file is available on your download page.
 
-The script will automatically find the latest Excel file and merge it with the CSV to regenerate `src/data/problems.json`.
 
-## 🛠 Configuration
+---
 
-- **Difficulty**: Filters problems by 5 levels (Very Easy -> Very Hard).
-- **Companies**: Filters by target company (Google, Amazon, etc.).
-- **Topics**: Filters by topic (Dynamic Programming, Graphs, etc.).
-- **Experience Level**:
-    - **Beginner**: 1.5x time estimate.
-    - **Intermediate**: Standard time.
-    - **Expert**: 0.7x time estimate.
+## 👨‍💻 Local Development
 
-## 📁 Source Files
+If you are the developer maintaining this repo:
 
-- `src/App.jsx`: Main UI and State.
-- `src/components/ConfigurationPanel.jsx`: Sidebar UI.
-- `src/components/ScheduleView.jsx`: Calendar/List UI.
-- `src/utils/scheduler.js`: Core algorithm for selecting and scheduling problems.
-- `scripts/update_db.js`: Data processing script.
+### 1. Setup
+```bash
+npm install
+npm run dev
+```
+
+### 2. Deployment
+To deploy to GitHub Pages:
+```bash
+npm run deploy
+```
+
+### 3. Data Updates & Admin
+For instructions on generating license keys or updating the problem database, see **`admin/ADMIN_GUIDE.md`** (Private).
+```bash
+npm run update-data
+```
+
+---
+*Built with ❤️ by @nikoo28*

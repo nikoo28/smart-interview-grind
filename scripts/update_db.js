@@ -122,23 +122,25 @@ function getLeetCodeURL(title) {
     return `https://leetcode.com/problems/${slug}/`;
 }
 
+const ADMIN_DIR = path.join(ROOT_DIR, 'admin');
+
 // === MAIN ===
 
 async function main() {
     try {
         console.log('--- Starting Data Update ---');
 
-        // 1. Find Files
-        const files = fs.readdirSync(ROOT_DIR);
+        // 1. Find Files in ADMIN_DIR
+        const files = fs.readdirSync(ADMIN_DIR);
 
         // Find Excel
         const excelFile = files.find(f => f.startsWith(EXCEL_PREFIX) && f.endsWith('.xlsx'));
         if (!excelFile) {
-            throw new Error(`Could not find Excel file starting with "${EXCEL_PREFIX}" in ${ROOT_DIR}`);
+            throw new Error(`Could not find Excel file starting with "${EXCEL_PREFIX}" in ${ADMIN_DIR}`);
         }
 
         // Find CSV
-        const csvPath = path.join(ROOT_DIR, MAPPING_CSV_NAME);
+        const csvPath = path.join(ADMIN_DIR, MAPPING_CSV_NAME);
         if (!fs.existsSync(csvPath)) {
             throw new Error(`Could not find CSV mapping file: ${MAPPING_CSV_NAME}`);
         }
@@ -153,7 +155,7 @@ async function main() {
         const userCSVContent = fs.readFileSync(csvPath, 'utf8');
         const userProbs = parseUserCSV(userCSVContent);
 
-        const meta = loadExcelMeta(path.join(ROOT_DIR, excelFile));
+        const meta = loadExcelMeta(path.join(ADMIN_DIR, excelFile));
 
         let grindProbs = [];
         if (fs.existsSync(grindPath)) {

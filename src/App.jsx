@@ -6,10 +6,20 @@ import Footer from './components/Footer';
 import WelcomeScreen from './components/WelcomeScreen';
 import Wizard from './components/Wizard';
 import ConfigSummary from './components/ConfigSummary';
+import LicenseGate from './components/LicenseGate';
 import { generateSchedule } from './utils/scheduler';
 
 function App() {
     // State Management with Persistence
+    const [isUnlocked, setIsUnlocked] = useState(() => {
+        return localStorage.getItem('grind_license_unlocked') === 'true';
+    });
+
+    const handleUnlock = () => {
+        localStorage.setItem('grind_license_unlocked', 'true');
+        setIsUnlocked(true);
+    };
+
     const [viewMode, setViewMode] = useState(() => {
         const saved = localStorage.getItem('grind_view_mode_v2');
         return saved ? saved : 'welcome';
@@ -157,6 +167,11 @@ function App() {
             setCompleted(new Set());
         }
     };
+
+    // If locked, show License Gate
+    if (!isUnlocked) {
+        return <LicenseGate onUnlock={handleUnlock} />;
+    }
 
     return (
         <div className="min-h-screen transition-colors duration-300 bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-gray-100 font-sans selection:bg-blue-500 selection:text-white pb-20">
