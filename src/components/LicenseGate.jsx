@@ -1,9 +1,5 @@
 import React, { useState, useCallback } from 'react';
-
-// The secret key effectively acts as the validator.
-// In a real scenario, this could be a hashed value, but for a text file file-check,
-// simple string matching or a JSON structure check is sufficient for the "shared file" model.
-const VALID_LICENSE_KEY = "SIG-ACCESS-2025-PREMIUM-USER-NIKOO28";
+import { LICENSE_HASH, LICENSE_SIZE } from '../constants/licenseHash';
 
 export default function LicenseGate({ onUnlock }) {
     const [isDragging, setIsDragging] = useState(false);
@@ -20,31 +16,46 @@ export default function LicenseGate({ onUnlock }) {
         }
     }, []);
 
-    const validateFile = (file) => {
+    const validateFile = async (file) => {
         setIsLoading(true);
         setError('');
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const content = e.target.result.trim();
+        // 1. Basic Size Check (Optimization)
+        // file.size isn't always exact due to filesystem block sizes, but 
+        // generated file is exactly 1024 bytes. We allow small variance if needed, 
+        // but here we can be strict since we generated it.
+        if (file.size !== LICENSE_SIZE) {
+            console.warn(`File size mismatch: ${file.size} vs ${LICENSE_SIZE}`);
+            // We continue anyway to check hash, or fail early. Failing early is cleaner.
+            setError(`Invalid license file (Size mismatch).`);
+            setIsLoading(false);
+            return;
+        }
 
-                // Simple validation: Check if file content matches our secret
-                if (content === VALID_LICENSE_KEY) {
-                    setTimeout(() => {
-                        onUnlock();
-                        setIsLoading(false);
-                    }, 1000); // Fake delay for dramatic effect
-                } else {
-                    setError('Invalid license file. Please upload the correct "smart-interview.license" file.');
+        try {
+            // 2. Read as Binary
+            const arrayBuffer = await file.arrayBuffer();
+
+            // 3. Calculate Hash
+            const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            // 4. Validate
+            if (hashHex === LICENSE_HASH) {
+                setTimeout(() => {
+                    onUnlock();
                     setIsLoading(false);
-                }
-            } catch (err) {
-                setError('Could not read license file.');
+                }, 800);
+            } else {
+                setError('Invalid license key. Verification failed.');
                 setIsLoading(false);
             }
-        };
-        reader.readAsText(file);
+        } catch (err) {
+            console.error('License validation error', err);
+            setError('Could not verify license file security.');
+            setIsLoading(false);
+        }
     };
 
     const handleDrop = useCallback((e) => {

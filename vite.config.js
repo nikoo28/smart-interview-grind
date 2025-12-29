@@ -8,4 +8,10 @@ export default defineConfig(({ command }) => ({
   server: {
     allowedHosts: ["quiet-stone-1cec.tunnl.gg"],
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
+    css: false,
+  },
 }))
