@@ -11,7 +11,9 @@ const mockCrypto = {
     }
 };
 
-Object.defineProperty(global, 'crypto', { value: mockCrypto });
+// Object.defineProperty(global, 'crypto', { value: mockCrypto });
+// Use globalThis for better compatibility
+Object.defineProperty(globalThis, 'crypto', { value: mockCrypto });
 Object.defineProperty(window, 'crypto', { value: mockCrypto, writable: true });
 
 // Mock valid hash (must match the one in test environment or derived)
