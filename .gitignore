@@ -125,3 +125,7 @@ user_progress.json
 
 # Admin / Private Files
 admin/
+
+# Security
+src/data/problems.json
+admin/secret.key

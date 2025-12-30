@@ -1,2 +1,2 @@
-export const LICENSE_HASH = "6749fb877bc412fccaf27033fcf5533cb63de1bb324f0b660298805fbafe4306";
-export const LICENSE_SIZE = 1024;
+export const LICENSE_HASH = "953580b5981a95fd805faad8db747ee9039f0118bf02dfdc337b57d23ce5f4b4";
+export const LICENSE_SIZE = 32; // Should be 32

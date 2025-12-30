@@ -19,9 +19,12 @@ This guide describes how to maintain the project according to your weekly, bi-we
     > *   **Multiple:** `"LeetCode 125, 3, 63"` (Comma separated list)
     > *   **Mixed:** `"LeetCode 125 & LeetCode #9"`
 
-2.  **Verify (Optional):**
-    *   Open `src/data/problems.json` and search for a recently uploaded problem title to confirm the link exists.
-    *   Or `npm run dev` and check the UI.
+2.  **🔒 Encrypt Data (IMPORTANT):**
+    *   **You MUST run this to secure the data before deploying.**
+    ```bash
+    node scripts/encrypt_data.js
+    ```
+    *Result:* Creates `public/problems.lock` (The encrypted lockbox).
 
 3.  **Deploy:**
     ```bash
@@ -50,7 +53,12 @@ This guide describes how to maintain the project according to your weekly, bi-we
     node scripts/fetch_youtube_videos.js
     ```
 
-4.  **Deploy:**
+4.  **🔒 Encrypt Data:**
+    ```bash
+    node scripts/encrypt_data.js
+    ```
+
+5.  **Deploy:**
     ```bash
     npm run deploy
     ```
@@ -69,12 +77,17 @@ This guide describes how to maintain the project according to your weekly, bi-we
     npm run update-data
     ```
 
-3.  **Sync Videos Again:**
+3.  **Sync Videos:**
     ```bash
     node scripts/fetch_youtube_videos.js
     ```
 
-4.  **Deploy:**
+4.  **Encrypt Data:**
+    ```bash
+    node scripts/encrypt_data.js
+    ```
+
+5.  **Deploy:**
     ```bash
     npm run deploy
     ```
@@ -88,6 +101,7 @@ This guide describes how to maintain the project according to your weekly, bi-we
 | **Start Local Server** | `npm run dev` |
 | **Update DB (Excel/CSV)** | `npm run update-data` |
 | **Fetch Videos** | `node scripts/fetch_youtube_videos.js` |
+| **🔒 Encrypt Data** | `node scripts/encrypt_data.js` |
 | **Run Tests** | `npm run test` |
 | **Deploy App** | `npm run deploy` |
 
@@ -96,7 +110,8 @@ This guide describes how to maintain the project according to your weekly, bi-we
 ## ℹ️ Admin Folder Contents
 
 *   **`admin/youtube_config.js`**: (Git-ignored) Contains your YouTube API Key. Do not share.
-*   **`admin/smart-interview.license`**: The binary license file for the app.
+*   **`admin/secret.key`**: (Git-ignored) **The Master Key**. If lost, no one can open new data updates. Backup this file!
+*   **`admin/smart-interview.license`**: A generatable license key for distribution.
 *   **`admin/leetcode_problems_*.xlsx`**: Your source of truth for problem data.
 *   **`admin/global_problem_company_mapping.csv`**: Your source of truth for company tags.
 

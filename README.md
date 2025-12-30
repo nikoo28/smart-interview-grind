@@ -41,12 +41,22 @@ If you are the developer maintaining this repo:
 ### 1. Setup
 ```bash
 npm install
+
+# Generate your master security key (First time only)
+node scripts/generate_key.js
+
+# Start Dev Server
 npm run dev
 ```
 
 ### 2. Deployment
 To deploy to GitHub Pages:
+**Important:** You must encrypt the data before deployment.
 ```bash
+# 1. Encrypt Data
+node scripts/encrypt_data.js
+
+# 2. Deploy
 npm run deploy
 ```
 

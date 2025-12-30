@@ -7,36 +7,43 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Constants
+const KEY_FILE_PATH = path.join(__dirname, '../admin/secret.key');
 const LICENSE_FILE_PATH = path.join(__dirname, '../admin/smart-interview.license');
 const HASH_FILE_PATH = path.join(__dirname, '../src/constants/licenseHash.js');
 
 async function generateLicense() {
-    console.log('🔒 Generating secure binary license...');
+    console.log('🔒 Generating Secure License Key...');
 
-    // 1. Generate 1KB of cryptographic random bytes
-    const buffer = new Uint8Array(1024);
-    webcrypto.getRandomValues(buffer);
+    // 1. Read the Secret Key
+    try {
+        await fs.access(KEY_FILE_PATH);
+    } catch {
+        console.error("❌ Key file missing. Run 'node scripts/generate_key.js' first.");
+        process.exit(1);
+    }
 
-    // 2. Write the BINARY file
-    // Note: We write this as a raw buffer, so it looks like "garbage" in a text editor
+    const keyBuffer = await fs.readFile(KEY_FILE_PATH);
+
+    // 2. Write the License File (It IS the key)
     await fs.mkdir(path.dirname(LICENSE_FILE_PATH), { recursive: true });
-    await fs.writeFile(LICENSE_FILE_PATH, buffer);
-    console.log(`✅ Binary license file created at: ${LICENSE_FILE_PATH}`);
+    await fs.writeFile(LICENSE_FILE_PATH, keyBuffer);
+    console.log(`✅ License file created at: ${LICENSE_FILE_PATH}`);
 
-    // 3. Calculate SHA-256 Hash
-    const hashBuffer = await webcrypto.subtle.digest('SHA-256', buffer);
+    // 3. Calculate SHA-256 Hash of the Key
+    // This allows the frontend to verify "Is this file the correct key?" without knowing the key itself beforehand.
+    const hashBuffer = await webcrypto.subtle.digest('SHA-256', keyBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     // 4. Update the App's validation logic
     const hashFileContent = `export const LICENSE_HASH = "${hashHex}";
-export const LICENSE_SIZE = 1024;
+export const LICENSE_SIZE = ${keyBuffer.length}; // Should be 32
 `;
 
     await fs.mkdir(path.dirname(HASH_FILE_PATH), { recursive: true });
     await fs.writeFile(HASH_FILE_PATH, hashFileContent);
     console.log(`✅ Application validation hash updated at: ${HASH_FILE_PATH}`);
-    console.log(`🔑 Verification Hash: ${hashHex}`);
+    console.log(`🔑 Key Hash: ${hashHex}`);
 }
 
 generateLicense().catch(console.error);

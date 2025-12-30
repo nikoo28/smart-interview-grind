@@ -44,7 +44,8 @@ export default function LicenseGate({ onUnlock }) {
             // 4. Validate
             if (hashHex === LICENSE_HASH) {
                 setTimeout(() => {
-                    onUnlock();
+                    // Pass the raw key buffer up to the app for decryption
+                    onUnlock(arrayBuffer);
                     setIsLoading(false);
                 }, 800);
             } else {

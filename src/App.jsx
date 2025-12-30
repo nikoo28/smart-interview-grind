@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import problemsData from './data/problems.json';
 import ConfigurationPanel from './components/ConfigurationPanel';
 import ScheduleView from './components/ScheduleView';
 import Footer from './components/Footer';
@@ -11,18 +10,14 @@ import ConfirmationModal from './components/ConfirmationModal';
 import { generateSchedule } from './utils/scheduler';
 
 function App() {
-    // State Management with Persistence
-    const [isUnlocked, setIsUnlocked] = useState(() => {
-        return localStorage.getItem('grind_license_unlocked') === 'true';
-    });
+    // Security: Problems are loaded ONLY after decryption
+    const [problemsData, setProblemsData] = useState(null);
+    const [isDecryptionError, setIsDecryptionError] = useState(false);
 
+    // UI State
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: null, title: '', message: '', isDanger: false });
 
-    const handleUnlock = () => {
-        localStorage.setItem('grind_license_unlocked', 'true');
-        setIsUnlocked(true);
-    };
-
+    // View State (Persisted)
     const [viewMode, setViewMode] = useState(() => {
         const saved = localStorage.getItem('grind_view_mode_v2');
         return saved ? saved : 'welcome';
@@ -58,8 +53,67 @@ function App() {
         localStorage.setItem('grind_config', JSON.stringify(config));
     }, [config]);
 
+
+    // DECRYPTION HANDLER
+    const handleUnlock = async (keyBuffer) => {
+        try {
+            // 1. Fetch Encrypted Lockbox
+            const response = await fetch('/problems.lock');
+            if (!response.ok) throw new Error("Could not find problems.lock");
+
+            const lockBuffer = await response.arrayBuffer();
+
+            // 2. Extract Parts (Format: [IV 12][AuthTag 16][Ciphertext])
+            // Wait, SubtleCrypto AES-GCM expects the tag to be appended to ciphertext for 'decrypt'.
+            // My encrypt script might have stored it differently. 
+            // Encrypt script did: Buffer.concat([iv, authTag, encrypted]);
+            // SubtleCrypto `decrypt` expects: [Ciphertext + Tag]
+            // So we need to reconstruct the arguments.
+
+            const iv = lockBuffer.slice(0, 12);
+            const authTag = lockBuffer.slice(12, 28);
+            const ciphertext = lockBuffer.slice(28);
+
+            // Reassemble for Web Crypto API: [Ciphertext, AuthTag]
+            const encryptedData = new Uint8Array(ciphertext.byteLength + authTag.byteLength);
+            encryptedData.set(new Uint8Array(ciphertext), 0);
+            encryptedData.set(new Uint8Array(authTag), ciphertext.byteLength);
+
+            // 3. Import Key
+            const key = await window.crypto.subtle.importKey(
+                "raw",
+                keyBuffer,
+                "AES-GCM",
+                true,
+                ["decrypt"]
+            );
+
+            // 4. Decrypt
+            const decryptedBuffer = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: iv },
+                key,
+                encryptedData
+            );
+
+            // 5. Parse JSON
+            const decoder = new TextDecoder();
+            const jsonString = decoder.decode(decryptedBuffer);
+            const problems = JSON.parse(jsonString);
+
+            setProblemsData(problems); // This Unlocks the App
+
+        } catch (e) {
+            console.error("Decryption Failed", e);
+            alert("Security Error: Failed to decrypt data with this license key.");
+            setIsDecryptionError(true);
+        }
+    };
+
+
     // Calculate live stats for the Configuration Panel
     const filteredStats = useMemo(() => {
+        if (!problemsData) return { 'Very Easy': 0, 'Easy': 0, 'Medium': 0, 'Hard': 0, 'Very Hard': 0 };
+
         const stats = { 'Very Easy': 0, 'Easy': 0, 'Medium': 0, 'Hard': 0, 'Very Hard': 0 };
 
         problemsData.forEach(p => {
@@ -81,6 +135,7 @@ function App() {
 
     // Dynamic Company Counts
     const dynamicCompanyCounts = useMemo(() => {
+        if (!problemsData) return new Map();
         const map = new Map();
         problemsData.forEach(p => {
             if (!config.selectedDifficulties.includes(p.difficulty)) return;
@@ -98,6 +153,7 @@ function App() {
 
     // Dynamic Topic Counts
     const dynamicTopicCounts = useMemo(() => {
+        if (!problemsData) return new Map();
         const map = new Map();
         problemsData.forEach(p => {
             if (!config.selectedDifficulties.includes(p.difficulty)) return;
@@ -125,6 +181,7 @@ function App() {
     }, [completed]);
 
     const schedule = useMemo(() => {
+        if (!problemsData) return [];
         return generateSchedule(problemsData, config);
     }, [config, problemsData]);
 
@@ -143,7 +200,6 @@ function App() {
     // Theme Management
     const [theme, setTheme] = useState(() => {
         if (typeof window !== 'undefined') {
-            // Check local storage or system preference
             const saved = localStorage.getItem('theme');
             if (saved) return saved;
             return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -165,14 +221,8 @@ function App() {
         setTheme(prev => prev === 'dark' ? 'light' : 'dark');
     };
 
-    const resetProgress = () => {
-        if (window.confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
-            setCompleted(new Set());
-        }
-    };
-
-    // If locked, show License Gate
-    if (!isUnlocked) {
+    // LICENSE GATE: If no data loaded, show gate
+    if (!problemsData) {
         return <LicenseGate onUnlock={handleUnlock} />;
     }
 
