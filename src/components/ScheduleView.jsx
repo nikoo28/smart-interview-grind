@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
@@ -185,6 +184,7 @@ export default function ScheduleView({ schedule, completed, setCompleted }) {
                                     ? 'bg-gray-100 dark:bg-slate-800/80 opacity-60 grayscale'
                                     : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'
                                     }`}>
+                                    {/* 1. Checkbox */}
                                     <label className="mt-1 relative flex items-center justify-center p-1 cursor-pointer">
                                         <input
                                             type="checkbox"
@@ -197,6 +197,7 @@ export default function ScheduleView({ schedule, completed, setCompleted }) {
                                         )}
                                     </label>
 
+                                    {/* 2. Main Content (Ans + Tags) */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-3 mb-1.5 flex-wrap">
                                             <a
@@ -209,8 +210,8 @@ export default function ScheduleView({ schedule, completed, setCompleted }) {
                                                     }`}
                                             >
                                                 {p.title}
-                                            </a >
-                                        </div >
+                                            </a>
+                                        </div>
 
                                         <div className="flex flex-wrap gap-3 text-xs items-center">
                                             <span className={`px-2.5 py-0.5 rounded-md font-medium border ${p.difficulty === 'Very Easy' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800' :
@@ -227,40 +228,63 @@ export default function ScheduleView({ schedule, completed, setCompleted }) {
 
                                             {p.topic && <span className="text-gray-400 dark:text-gray-500 font-medium">• {p.topic}</span>}
                                         </div>
-                                    </div >
+                                    </div>
 
-                                    {/* Meta Icons */}
-                                    <div className="flex flex-col items-end gap-2 pt-1">
-                                        {/* Likes */}
-                                        <div
-                                            className="group/meta flex items-center gap-1.5 cursor-help"
-                                            title="Number of people who like this question on LeetCode"
-                                        >
-                                            <span className="text-[10px] font-medium text-gray-400 group-hover/meta:text-gray-600 dark:text-gray-500 dark:group-hover/meta:text-gray-300 transition-colors">
-                                                {p.likes > 1000 ? `${(p.likes / 1000).toFixed(1)}k` : p.likes || 0}
-                                            </span>
-                                            <svg className="w-4 h-4 text-gray-300 group-hover/meta:text-gray-500 dark:text-gray-600 dark:group-hover/meta:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                                            </svg>
-                                        </div>
+                                    {/* 3. Meta Column (Video + Stats) */}
+                                    <div className="flex items-center gap-4">
+                                        {/* Video Thumbnail (Left of Stats) */}
+                                        {p.videoUrl && (
+                                            <a
+                                                href={p.videoUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="group/video relative block w-28 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 dark:border-gray-700 shadow-sm hover:ring-2 ring-blue-500 transition-all"
+                                                title={`Watch Solution: ${p.title}`}
+                                            >
+                                                {p.videoThumbnail && (
+                                                    <img src={p.videoThumbnail} alt="Solution" className="w-full h-full object-cover opacity-90 group-hover/video:opacity-100 transition-opacity" />
+                                                )}
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/video:bg-transparent transition-colors">
+                                                    <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm group-hover/video:scale-110 transition-transform">
+                                                        <svg className="w-4 h-4 text-white fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        )}
 
-                                        {/* Company Count */}
-                                        <div
-                                            className="group/meta flex items-center gap-1.5 cursor-help"
-                                            title={`This question has been asked by ${p.company_count || 0} number of companies`}
-                                        >
-                                            <span className="text-[10px] font-medium text-gray-400 group-hover/meta:text-gray-600 dark:text-gray-500 dark:group-hover/meta:text-gray-300 transition-colors">
-                                                {p.company_count || 0}
-                                            </span>
-                                            <svg className="w-4 h-4 text-gray-300 group-hover/meta:text-gray-500 dark:text-gray-600 dark:group-hover/meta:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-3m0 0h10m0 0v3m-10-3h10m-10 0v-2a2 2 0 012-2h6a2 2 0 012 2v2M9 7h1v1H9V7zm0 4h1v1H9v-1zm4-4h1v1h-1V7zm0 4h1v1h-1v-1z" />
-                                            </svg>
+                                        {/* Stats (Right) */}
+                                        <div className="flex flex-col items-end gap-1">
+                                            {/* Likes */}
+                                            <div
+                                                className="group/meta flex items-center gap-1.5 cursor-help"
+                                                title="Number of people who like this question on LeetCode"
+                                            >
+                                                <span className="text-[10px] font-medium text-gray-400 group-hover/meta:text-gray-600 dark:text-gray-500 dark:group-hover/meta:text-gray-300 transition-colors">
+                                                    {p.likes > 1000 ? `${(p.likes / 1000).toFixed(1)}k` : p.likes || 0}
+                                                </span>
+                                                <svg className="w-4 h-4 text-gray-300 group-hover/meta:text-gray-500 dark:text-gray-600 dark:group-hover/meta:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                                </svg>
+                                            </div>
+
+                                            {/* Company Count */}
+                                            <div
+                                                className="group/meta flex items-center gap-1.5 cursor-help"
+                                                title={`This question has been asked by ${p.company_count || 0} number of companies`}
+                                            >
+                                                <span className="text-[10px] font-medium text-gray-400 group-hover/meta:text-gray-600 dark:text-gray-500 dark:group-hover/meta:text-gray-300 transition-colors">
+                                                    {p.company_count || 0}
+                                                </span>
+                                                <svg className="w-4 h-4 text-gray-300 group-hover/meta:text-gray-500 dark:text-gray-600 dark:group-hover/meta:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-3m0 0h10m0 0v3m-10-3h10m-10 0v-2a2 2 0 012-2h6a2 2 0 012 2v2M9 7h1v1H9V7zm0 4h1v1H9v-1zm4-4h1v1h-1V7zm0 4h1v1h-1v-1z" />
+                                                </svg>
+                                            </div>
                                         </div>
                                     </div>
-                                </div >
+                                </div>
                             ))}
-                        </div >
-                    </div >
+                        </div>
+                    </div>
                 );
             })}
 
@@ -312,6 +336,6 @@ export default function ScheduleView({ schedule, completed, setCompleted }) {
                 </div>,
                 document.body
             )}
-        </div >
+        </div>
     );
 }
