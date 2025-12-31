@@ -12,7 +12,6 @@ import { generateSchedule } from './utils/scheduler';
 function App() {
     // Security: Problems are loaded ONLY after decryption
     const [problemsData, setProblemsData] = useState(null);
-    const [isDecryptionError, setIsDecryptionError] = useState(false);
 
     // UI State
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: null, title: '', message: '', isDanger: false });
@@ -54,22 +53,34 @@ function App() {
     }, [config]);
 
 
+    // Helper: Buffer <-> Base64
+    const bufferToBase64 = (buffer) => {
+        const binary = String.fromCharCode(...new Uint8Array(buffer));
+        return window.btoa(binary);
+    };
+
+    const base64ToBuffer = (base64) => {
+        const binary = window.atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes.buffer;
+    };
+
     // DECRYPTION HANDLER
     const handleUnlock = async (keyBuffer) => {
         try {
+            // FIX: Use relative path or base_url for GH Pages support
+            const lockUrl = import.meta.env.BASE_URL + 'problems.lock';
+
             // 1. Fetch Encrypted Lockbox
-            const response = await fetch('/problems.lock');
-            if (!response.ok) throw new Error("Could not find problems.lock");
+            const response = await fetch(lockUrl);
+            if (!response.ok) throw new Error(`Could not find problems.lock at ${lockUrl}`);
 
             const lockBuffer = await response.arrayBuffer();
 
             // 2. Extract Parts (Format: [IV 12][AuthTag 16][Ciphertext])
-            // Wait, SubtleCrypto AES-GCM expects the tag to be appended to ciphertext for 'decrypt'.
-            // My encrypt script might have stored it differently. 
-            // Encrypt script did: Buffer.concat([iv, authTag, encrypted]);
-            // SubtleCrypto `decrypt` expects: [Ciphertext + Tag]
-            // So we need to reconstruct the arguments.
-
             const iv = lockBuffer.slice(0, 12);
             const authTag = lockBuffer.slice(12, 28);
             const ciphertext = lockBuffer.slice(28);
@@ -102,12 +113,34 @@ function App() {
 
             setProblemsData(problems); // This Unlocks the App
 
+            // 6. Persist Session (Secure UX)
+            try {
+                const base64Key = bufferToBase64(keyBuffer);
+                sessionStorage.setItem('grind_session_key', base64Key);
+            } catch (err) {
+                console.warn("Failed to save session key", err);
+            }
+
         } catch (e) {
             console.error("Decryption Failed", e);
-            alert("Security Error: Failed to decrypt data with this license key.");
-            setIsDecryptionError(true);
+            alert("Security Error: Failed to decrypt data. Invalid license or corrupted lockfile.");
+            sessionStorage.removeItem('grind_session_key'); // Clear bad key
         }
     };
+
+    // Auto-Restore Session
+    useEffect(() => {
+        const savedKey = sessionStorage.getItem('grind_session_key');
+        if (savedKey) {
+            try {
+                const keyBuffer = base64ToBuffer(savedKey);
+                handleUnlock(keyBuffer);
+            } catch (e) {
+                console.error("Session restore failed", e);
+                sessionStorage.removeItem('grind_session_key');
+            }
+        }
+    }, []);
 
 
     // Calculate live stats for the Configuration Panel

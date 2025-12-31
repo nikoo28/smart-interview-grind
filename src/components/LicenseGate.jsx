@@ -16,7 +16,7 @@ export default function LicenseGate({ onUnlock }) {
         }
     }, []);
 
-    const validateFile = async (file) => {
+    const validateFile = useCallback(async (file) => {
         setIsLoading(true);
         setError('');
 
@@ -57,7 +57,7 @@ export default function LicenseGate({ onUnlock }) {
             setError('Could not verify license file security.');
             setIsLoading(false);
         }
-    };
+    }, [onUnlock]);
 
     const handleDrop = useCallback((e) => {
         e.preventDefault();
@@ -67,7 +67,7 @@ export default function LicenseGate({ onUnlock }) {
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             validateFile(e.dataTransfer.files[0]);
         }
-    }, []);
+    }, [validateFile]);
 
     const handleFileSelect = (e) => {
         if (e.target.files && e.target.files[0]) {
