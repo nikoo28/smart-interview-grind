@@ -12,6 +12,7 @@ import { generateSchedule } from './utils/scheduler';
 function App() {
     // Security: Problems are loaded ONLY after decryption
     const [problemsData, setProblemsData] = useState(null);
+    const [isRestoringSession, setIsRestoringSession] = useState(true);
 
     // UI State
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: null, title: '', message: '', isDanger: false });
@@ -130,16 +131,21 @@ function App() {
 
     // Auto-Restore Session
     useEffect(() => {
-        const savedKey = sessionStorage.getItem('grind_session_key');
-        if (savedKey) {
-            try {
-                const keyBuffer = base64ToBuffer(savedKey);
-                handleUnlock(keyBuffer);
-            } catch (e) {
-                console.error("Session restore failed", e);
-                sessionStorage.removeItem('grind_session_key');
+        const restoreSession = async () => {
+            const savedKey = sessionStorage.getItem('grind_session_key');
+            if (savedKey) {
+                try {
+                    const keyBuffer = base64ToBuffer(savedKey);
+                    await handleUnlock(keyBuffer);
+                } catch (e) {
+                    console.error("Session restore failed", e);
+                    sessionStorage.removeItem('grind_session_key');
+                }
             }
-        }
+            // Done trying to restore (whether success or fail)
+            setIsRestoringSession(false);
+        };
+        restoreSession();
     }, []);
 
 
@@ -256,6 +262,16 @@ function App() {
 
     // LICENSE GATE: If no data loaded, show gate
     if (!problemsData) {
+        if (isRestoringSession) {
+            return (
+                <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-slate-900">
+                    <div className="animate-pulse flex flex-col items-center">
+                        <div className="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-full mb-4"></div>
+                        <div className="h-4 w-32 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                    </div>
+                </div>
+            );
+        }
         return <LicenseGate onUnlock={handleUnlock} />;
     }
 
