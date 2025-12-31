@@ -22,7 +22,7 @@ This guide describes how to maintain the project according to your weekly, bi-we
 2.  **🔒 Encrypt Data (IMPORTANT):**
     *   **You MUST run this to secure the data before deploying.**
     ```bash
-    node scripts/encrypt_data.js
+    npm run encrypt
     ```
     *Result:* Creates `public/problems.lock` (The encrypted lockbox).
 
@@ -55,7 +55,7 @@ This guide describes how to maintain the project according to your weekly, bi-we
 
 4.  **🔒 Encrypt Data:**
     ```bash
-    node scripts/encrypt_data.js
+    npm run encrypt
     ```
 
 5.  **Deploy:**
@@ -84,7 +84,7 @@ This guide describes how to maintain the project according to your weekly, bi-we
 
 4.  **Encrypt Data:**
     ```bash
-    node scripts/encrypt_data.js
+    npm run encrypt
     ```
 
 5.  **Deploy:**
@@ -101,7 +101,7 @@ This guide describes how to maintain the project according to your weekly, bi-we
 | **Start Local Server** | `npm run dev` |
 | **Update DB (Excel/CSV)** | `npm run update-data` |
 | **Fetch Videos** | `node scripts/fetch_youtube_videos.js` |
-| **🔒 Encrypt Data** | `node scripts/encrypt_data.js` |
+| **🔒 Encrypt Data** | `npm run encrypt` |
 | **Run Tests** | `npm run test` |
 | **Deploy App** | `npm run deploy` |
 

@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "update-data": "node scripts/update_db.js",
+    "encrypt": "node scripts/encrypt_data.js",
     "test": "vitest",
     "lint": "eslint .",
     "predeploy": "npm run build",
