@@ -25,7 +25,7 @@ export default function Footer() {
 
                     {/* Section 2: Guide */}
                     <a
-                        href="https://youtu.com/eKgGR3dKpzE"
+                        href="https://youtu.be/_EorYDcshuA"
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors whitespace-nowrap"
