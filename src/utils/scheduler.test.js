@@ -4,7 +4,7 @@ import { generateSchedule } from './scheduler';
 // Mock Problem Data
 const mockProblems = [
     { title: "Two Sum", difficulty: "Easy", companies: ["Google", "Amazon"], relatedTopics: [{ name: "Array" }], duration: 20, company_count: 50 },
-    { title: "3Sum", difficulty: "Medium", companies: ["Facebook"], relatedTopics: [{ name: "Array" }], duration: 30, company_count: 30 },
+    { title: "3Sum", difficulty: "Medium", companies: ["Meta"], relatedTopics: [{ name: "Array" }], duration: 30, company_count: 30 },
     { title: "Hard Graph", difficulty: "Hard", companies: ["Google"], relatedTopics: [{ name: "Graph" }], duration: 45, company_count: 10 },
     { title: "Easy String", difficulty: "Easy", companies: ["Microsoft"], relatedTopics: [{ name: "String" }], duration: 15, company_count: 20 },
 ];
