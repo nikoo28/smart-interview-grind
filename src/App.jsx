@@ -8,6 +8,7 @@ import ConfigSummary from './components/ConfigSummary';
 import LicenseGate from './components/LicenseGate';
 import ConfirmationModal from './components/ConfirmationModal';
 import { generateSchedule } from './utils/scheduler';
+import { pruneConfig } from './utils/config';
 
 function App() {
     // Security: Problems are loaded ONLY after decryption
@@ -112,6 +113,7 @@ function App() {
             const jsonString = decoder.decode(decryptedBuffer);
             const problems = JSON.parse(jsonString);
 
+            setConfig(prev => pruneConfig(prev, problems));
             setProblemsData(problems); // This Unlocks the App
 
             // 6. Persist Session (Secure UX)
