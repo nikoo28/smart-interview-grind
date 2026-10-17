@@ -45,13 +45,16 @@ export function getLeetCodeURL(title) {
 }
 
 /**
- * Picks the newest Excel export, using the YYYYMMDD_HHMMSS stamp in the file name.
+ * Picks the newest Excel export, using the YYYYMMDD[_HHMMSS] stamp in the file name.
  * @param {string[]} files File names in the admin folder
  * @param {string} prefix e.g. "leetcode_problems_"
  * @returns {string|undefined}
  */
 export function findLatestExcel(files, prefix) {
-    const stamp = (f) => (f.match(/(\d{8}_\d{6})/) || [])[1] || '';
+    const stamp = (f) => {
+        const m = f.match(/(\d{8})(?:_(\d{6}))?/);
+        return m ? `${m[1]}_${m[2] || '000000'}` : '';
+    };
     return files
         .filter(f => f.startsWith(prefix) && f.endsWith('.xlsx'))
         .sort((a, b) => stamp(b).localeCompare(stamp(a)))[0];

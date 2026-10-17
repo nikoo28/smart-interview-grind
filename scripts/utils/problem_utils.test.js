@@ -25,7 +25,7 @@ describe('estimateTime', () => {
     it('orders difficulties by time: Very Hard > Hard and Very Easy <= Easy', () => {
         for (const t of SAMPLE_TITLES) {
             expect(estimateTime('Very Hard', t)).toBeGreaterThan(estimateTime('Hard', t));
-            expect(estimateTime('Very Easy', t)).toBeLessThanOrEqual(estimateTime('Easy', t) + 5);
+            expect(estimateTime('Very Easy', t)).toBeLessThanOrEqual(estimateTime('Easy', t) + 2);
         }
     });
 
@@ -66,6 +66,11 @@ describe('findLatestExcel', () => {
             'global_problem_company_mapping.csv',
         ];
         expect(findLatestExcel(files, PREFIX)).toBe('leetcode_problems_premium_20260816_154438.xlsx');
+    });
+
+    it('treats a date-only name as the start of that day', () => {
+        const files = ['leetcode_problems_20260816_154438.xlsx', 'leetcode_problems_20260901.xlsx', 'leetcode_problems_20260816.xlsx'];
+        expect(findLatestExcel(files, PREFIX)).toBe('leetcode_problems_20260901.xlsx');
     });
 
     it('returns undefined when there is no export', () => {
