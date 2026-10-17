@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import xlsx from 'xlsx';
+import { estimateTime, getLeetCodeURL, findLatestExcel } from './utils/problem_utils.js';
 
 // === CONFIG ===
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -53,21 +54,36 @@ function loadExcelMeta(excelPath) {
     console.log(`Loading Excel from: ${excelPath}`);
     const workbook = xlsx.readFile(excelPath);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, blankrows: true });
+    const firstRow = xlsx.utils.decode_range(sheet['!ref']).s.r;
+
+    // Locate columns by header name (premium exports have extra company columns)
+    const headerIdx = rows.findIndex(r => r && r[0] === 'Problem Number');
+    if (headerIdx === -1) throw new Error('Could not find the "Problem Number" header row in the Excel');
+    const header = rows[headerIdx];
+    const col = {
+        id: header.indexOf('Problem Number'),
+        title: header.indexOf('Problem Name'),
+        likes: header.indexOf('Likes'),
+        topics: header.indexOf('Topics'),
+        difficulty: header.indexOf('Suggested Difficulty Level'),
+        companyCount: header.indexOf('Company Count'),
+        companies: header.indexOf('Companies List'),
+    };
+    for (const key of ['title', 'likes', 'topics', 'difficulty']) {
+        if (col[key] === -1) throw new Error(`Missing Excel column for "${key}"`);
+    }
+    const hasCompanies = col.companyCount !== -1 && col.companies !== -1;
 
     const meta = [];
-    if (rows.length < 5) return [];
-
-    // Header index check might be needed if format changes, but assuming user format is stable
-    // Row 4 is header in the provided sample
-    for (let i = 4; i < rows.length; i++) {
+    for (let i = headerIdx + 1; i < rows.length; i++) {
         const row = rows[i];
-        if (!row || !row[1]) continue;
+        if (!row || !row[col.title]) continue;
 
-        const title = row[1];
-        const likes = row[2] || 0;
-        const topicsRaw = row[6] || '';
-        const difficulty = row[9] || 'Medium';
+        const title = row[col.title].toString();
+        const likes = row[col.likes] || 0;
+        const topicsRaw = row[col.topics] || '';
+        const difficulty = row[col.difficulty] || 'Medium';
 
         // Clean topics
         const topics = topicsRaw.toString().split(',').map(t => t.trim()).filter(Boolean);
@@ -76,50 +92,31 @@ function loadExcelMeta(excelPath) {
         // Structure related topics clearly
         const relatedTopics = topics.map(name => ({ name }));
 
+        // Problem names are hyperlinks to the real LeetCode page
+        const titleCell = sheet[xlsx.utils.encode_cell({ r: firstRow + i, c: col.title })];
+        const url = titleCell?.l?.Target || null;
+
         meta.push({
+            Id: row[col.id] != null ? String(row[col.id]) : null,
             Title: title.trim(),
             Difficulty: difficulty,
             Topic: primaryTopic,
             relatedTopics: relatedTopics, // Key fix from previous session
-            Likes: likes
+            Likes: likes,
+            Url: url,
+            CompanyCount: hasCompanies ? parseInt(row[col.companyCount]) || 0 : 0,
+            Companies: hasCompanies ? (row[col.companies] || '').toString().split(',').map(c => c.trim()).filter(Boolean) : [],
         });
     }
-    return meta;
-}
-
-function estimateTime(difficulty, title) {
-    let base = 30;
-    let variance = 10;
-    if (difficulty === 'Easy') { base = 15; variance = 10; } // 10-25
-    if (difficulty === 'Medium') { base = 35; variance = 20; } // 25-55
-    if (difficulty === 'Hard') { base = 60; variance = 30; } // 45-90
-
-    // Consistent hash for deterministic variation
-    let hash = 0;
-    for (let i = 0; i < title.length; i++) {
-        hash = ((hash << 5) - hash) + title.charCodeAt(i);
-        hash |= 0;
-    }
-    const offset = Math.abs(hash) % variance;
-    const final = base + (hash % 2 === 0 ? offset : -offset);
-    return Math.max(10, final);
+    return { meta, hasCompanies };
 }
 
 function formatCompany(slug) {
-    return slug.split('-').map(word => {
+    return slug.toLowerCase().split('-').map(word => {
         if (word === 'ii') return 'II';
         if (word === 'iii') return 'III';
         return word.charAt(0).toUpperCase() + word.slice(1);
     }).join(' ');
-}
-
-function getLeetCodeURL(title) {
-    // Basic slugification
-    const slug = title.toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '') // remove special chars
-        .trim()
-        .replace(/\s+/g, '-');
-    return `https://leetcode.com/problems/${slug}/`;
 }
 
 const ADMIN_DIR = path.join(ROOT_DIR, 'admin');
@@ -133,16 +130,10 @@ async function main() {
         // 1. Find Files in ADMIN_DIR
         const files = fs.readdirSync(ADMIN_DIR);
 
-        // Find Excel
-        const excelFile = files.find(f => f.startsWith(EXCEL_PREFIX) && f.endsWith('.xlsx'));
+        // Find newest Excel
+        const excelFile = findLatestExcel(files, EXCEL_PREFIX);
         if (!excelFile) {
             throw new Error(`Could not find Excel file starting with "${EXCEL_PREFIX}" in ${ADMIN_DIR}`);
-        }
-
-        // Find CSV
-        const csvPath = path.join(ADMIN_DIR, MAPPING_CSV_NAME);
-        if (!fs.existsSync(csvPath)) {
-            throw new Error(`Could not find CSV mapping file: ${MAPPING_CSV_NAME}`);
         }
 
         // Find Grind75 (Static)
@@ -152,17 +143,36 @@ async function main() {
         }
 
         // 2. Load Content
-        const userCSVContent = fs.readFileSync(csvPath, 'utf8');
-        const userProbs = parseUserCSV(userCSVContent);
+        const { meta, hasCompanies } = loadExcelMeta(path.join(ADMIN_DIR, excelFile));
 
-        const meta = loadExcelMeta(path.join(ADMIN_DIR, excelFile));
+        // Company tags: premium Excel carries them; otherwise fall back to the mapping CSV
+        let sources;
+        if (hasCompanies) {
+            console.log('Company data: from the premium Excel');
+            sources = meta
+                .filter(m => m.CompanyCount > 0)
+                .map(m => ({ id: m.Id, title: m.Title, companySlugs: m.Companies, count: m.CompanyCount }));
+        } else {
+            const csvPath = path.join(ADMIN_DIR, MAPPING_CSV_NAME);
+            if (!fs.existsSync(csvPath)) {
+                throw new Error(`Excel has no company columns and CSV mapping file is missing: ${MAPPING_CSV_NAME}`);
+            }
+            console.log(`Company data: from ${MAPPING_CSV_NAME}`);
+            sources = parseUserCSV(fs.readFileSync(csvPath, 'utf8')).map(u => ({
+                id: u['problem_id'],
+                title: u['problem_name'],
+                // Format in CSV is bullet list strings sometimes or just messy
+                companySlugs: u['list_of_companies'].split('•').map(c => c.trim()).filter(Boolean),
+                count: parseInt(u['number_of_companies']) || 0,
+            }));
+        }
 
         let grindProbs = [];
         if (fs.existsSync(grindPath)) {
             grindProbs = parseGrindCSV(fs.readFileSync(grindPath, 'utf8'));
         }
 
-        console.log(`Loaded: ${userProbs.length} Mapping Entries, ${meta.length} Excel Rows, ${grindProbs.length} Grind75 Entries`);
+        console.log(`Loaded: ${sources.length} Company-tagged Problems, ${meta.length} Excel Rows, ${grindProbs.length} Grind75 Entries`);
 
         // Indexing with normalized spacing
         const normalizeTitle = (t) => t.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -175,28 +185,20 @@ async function main() {
 
         // 4. Merge
         const merged = [];
+        let unmatched = 0;
 
-        userProbs.forEach(u => {
-            const originalTitle = u['problem_name'];
+        sources.forEach(s => {
+            const originalTitle = s.title;
             const lowerTitle = normalizeTitle(originalTitle);
-            const id = u['problem_id'];
-
-            // Normalize companies
-            // Format in CSV is bullet list strings sometimes or just messy
-            const rawCompanies = u['list_of_companies'].split('•').map(c => c.trim()).filter(Boolean);
-            const companies = rawCompanies.map(formatCompany);
-
-            const count = parseInt(u['number_of_companies']) || 0;
+            const companies = s.companySlugs.map(formatCompany);
 
             // Defaults
             let difficulty = 'Medium';
             let topic = 'Algorithms';
             let relatedTopics = [];
-            let duration = 30;
             let isGrind75 = false;
             let likes = 0;
-
-            let url = getLeetCodeURL(originalTitle);
+            let url = null;
 
             // Match Excel Meta
             if (metaMap.has(lowerTitle)) {
@@ -205,10 +207,12 @@ async function main() {
                 topic = m.Topic;
                 relatedTopics = m.relatedTopics;
                 likes = m.Likes;
-                duration = estimateTime(difficulty, originalTitle);
+                url = m.Url;
             } else {
-                duration = estimateTime(difficulty, originalTitle);
+                unmatched++;
             }
+
+            const duration = estimateTime(difficulty, originalTitle); // minutes
 
             // Match Grind75 (Override duration/importance?)
             if (grindMap.has(lowerTitle)) {
@@ -218,19 +222,21 @@ async function main() {
             }
 
             merged.push({
-                id,
+                id: s.id,
                 title: originalTitle,
-                url,
+                url: url || getLeetCodeURL(originalTitle),
                 difficulty,
                 duration, // minutes
                 companies,
-                company_count: count,
+                company_count: s.count,
                 topic,
                 relatedTopics, // { name: string }[]
                 isGrind75,
                 likes
             });
         });
+
+        if (unmatched > 0) console.warn(`Warning: ${unmatched} problems had no Excel metadata (defaults used)`);
 
         // 5. Write Output
         // Sort by company count descending by default

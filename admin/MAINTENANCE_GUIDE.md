@@ -37,9 +37,9 @@ This guide describes how to maintain the project according to your weekly, bi-we
 **Goal:** Refresh the problem database with your scraped Excel sheet (Difficulty, Topics, Stats).
 
 1.  **Prepare the File:**
-    *   Name your file: `leetcode_problems_YYYYMMDD.xlsx` (or any name starting with `leetcode_problems_`).
-    *   **Delete** the old `.xlsx` file from the `admin/` folder.
-    *   **Paste** your NEW file into the `admin/` folder.
+    *   Use the scraper's output as-is, e.g. `leetcode_problems_premium_20260816_154438.xlsx` (any name starting with `leetcode_problems_`).
+    *   **Paste** your NEW file into the `admin/` folder. Old files can stay: the script picks the newest one by the `YYYYMMDD_HHMMSS` stamp in the name.
+    *   **Prefer the premium export:** it already contains company tags, so the CSV in step 3 is not needed. Problem links come from the Excel's hyperlinks.
 
 2.  **Update Database:**
     ```bash
@@ -67,6 +67,8 @@ This guide describes how to maintain the project according to your weekly, bi-we
 
 ## 3. Monthly: Update Company Tags (CSV) 🏢
 **Goal:** Update the mapping of which companies ask which problems.
+
+> **Only needed for the standard (non-premium) Excel.** When the newest Excel is a premium export, its `Company Count` / `Companies List` columns are used and this CSV is ignored.
 
 1.  **Prepare the File:**
     *   Name your file: `global_problem_company_mapping.csv`.

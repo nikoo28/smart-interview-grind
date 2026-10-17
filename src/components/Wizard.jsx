@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 
 const PRESETS = {
     topTech: ['Google', 'Meta', 'Amazon', 'Microsoft', 'Apple', 'Netflix', 'Uber', 'Airbnb'],
-    recommendedTopics: ['Array', 'String', 'Hash Table', 'Dynamic Programming', 'Tree', 'Graph', 'Linked List', 'Sorting']
+    recommendedTopics: ['Array', 'String', 'Hash Table', 'Dynamic Programming', 'Tree', 'Graph Theory', 'Linked List', 'Sorting']
 };
 
 export default function Wizard({ config: globalConfig, setConfig: setGlobalConfig, allProblems, onComplete, onCancel }) {
