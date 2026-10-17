@@ -1,4 +1,5 @@
 import React from 'react';
+import SessionLink from './SessionLink';
 
 export default function ConfigSummary({ config, onStartOver }) {
     // Helpers to format display text
@@ -73,6 +74,8 @@ export default function ConfigSummary({ config, onStartOver }) {
                         </div>
                     </div>
                 </div>
+
+                <SessionLink />
             </div>
         </div>
     );

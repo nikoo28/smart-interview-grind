@@ -36,20 +36,7 @@ export default function Footer() {
 
                     <div className="hidden xl:block w-px h-4 bg-gray-200 dark:bg-gray-700"></div>
 
-                    {/* Section 3: 1:1 Call */}
-                    <a
-                        href="https://topmate.io/nikoo28/1398815"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-2 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors whitespace-nowrap"
-                    >
-                        <span className="text-lg">📞</span>
-                        <span>Schedule a 1:1 call with me</span>
-                    </a>
-
-                    <div className="hidden xl:block w-px h-4 bg-gray-200 dark:bg-gray-700"></div>
-
-                    {/* Section 4: Buy Coffee */}
+                    {/* Section 3: Buy Coffee */}
                     <a
                         href="https://www.buymeacoffee.com/studyalgorithms"
                         target="_blank"
@@ -62,7 +49,7 @@ export default function Footer() {
 
                     <div className="hidden xl:block w-px h-4 bg-gray-200 dark:bg-gray-700"></div>
 
-                    {/* Section 5: GitHub Repo */}
+                    {/* Section 4: GitHub Repo */}
                     <a
                         href="https://github.com/nikoo28/java-solutions"
                         target="_blank"
